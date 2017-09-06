@@ -22,7 +22,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"bytes"
+	//"bytes"
 	"strconv"
 	//"strings"
 	"encoding/json"
@@ -162,24 +162,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return t.Init(stub)
 	} else if function == "read" {             //generic read ledger -> psiloaxrhsth
 		return read(stub, args)
-	} else if function == "write" {            //generic writes to ledger -> psiloaxrhsth
-		return write(stub, args)
-	} else if function == "delete_marble" {    //deletes a marble from state
-		return delete_marble(stub, args)
+	} else if function == "delete_voter" {    //deletes a marble from state
+		return delete_voter(stub, args)
 	} else if function == "init_voter" {      //create a new marble
 		return init_voter(stub, args)
-	} else if function == "set_owner" {        //change owner of a marble
-		return set_owner(stub, args)
-	} else if function == "init_owner"{        //create a new marble owner
-		return init_owner(stub, args)
-	} else if function == "read_everything"{   //read everything, (owners + marbles + companies)
-		return read_everything(stub)
-	} else if function == "getHistory"{        //read history of a marble (audit)
-		return getHistory(stub, args)
-	} else if function == "getMarblesByRange"{ //read a bunch of marbles by start and stop id
-		return getMarblesByRange(stub, args)
-	} else if function == "disable_owner"{     //disable a marble owner from appearing on the UI
-		return disable_owner(stub, args)
 	}
 
 	// error out
@@ -310,7 +296,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 // Returns - string
 // ============================================================================================================================
 func read(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var voter Voter
+	//var voter Voter
 	var jsonResp string
 	var err error
 	fmt.Println("starting read")
@@ -334,17 +320,25 @@ func read(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error(jsonResp)
 	}
 	*/
-	
-	// get the marble
-	voter, err := get_voter(stub, vid)
+/*
+	// getthe marble
+	vid := args[0]
+	_, err := get_voter(stub, vid)
 	if err != nil{
 		fmt.Println("Failed to find marble by vid " + vid)
 		return shim.Error(err.Error())
 	}
+*/
+	vid := args[0]
+	valAsbytes, err := stub.GetState(vid)           //get the var from ledger
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + vid + "\"}"
+		return shim.Error(jsonResp)
+	}
 
 	fmt.Println("- end read")
 	//return shim.Success(valAsbytes)
-	return shim.Success(voter)                  //send it onward
+	return shim.Success(valAsbytes)                  //send it onward
 }
 
 
