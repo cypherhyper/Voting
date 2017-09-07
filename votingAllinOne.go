@@ -60,6 +60,8 @@ type Voter struct {
 	vID 						string `json:"vID"`
 	tokensBought    			string `json:"tokensBought"`
 	tokensUsedPerCandidate    string `json:"tokensUsedPerCandidate"` //Slice
+	tokensRemaining				string `json:"tokensRemaining"`
+	Enabled						bool `json:"Enabled"`
 }
 
 type Candidate struct {
@@ -172,8 +174,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return read_candidate(stub, args)
 	}else if function == "delete_candidate" {      //create a new marble
 		return delete_candidate(stub, args)
-	}else if function == "init_voter" {      //create a new marble
-		return init_voter(stub, args)
+	}else if function == "disable_voter" {      //create a new marble
+		return disable_voter(stub, args)
 	}else if function == "init_voter" {      //create a new marble
 		return init_voter(stub, args)
 	}
@@ -183,9 +185,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Error("Received unknown invoke function name - '" + function + "'")
 }
 
-
-//********************************** WRITE LEDGER **********************************
-
+//*********************************************************************************
+//********************************** WRITE LEDGER *********************************
+//*********************************************************************************
 // ============================================================================================================================
 // Init Owner - create a new owner aka end user, store into chaincode state
 //
@@ -215,7 +217,8 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	voter.vID =  args[0]
 	voter.tokensBought = args[1]
 	voter.tokensUsedPerCandidate = args[2]
-	//owner.Enabled = true
+	voter.tokensRemaining = args[1]
+	voter.Enabled = true
 	fmt.Println(voter)
 
 	//check if user already exists
@@ -382,8 +385,77 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 }
 
 
-//********************************** READ LEDGER **********************************
+// ============================================================================================================================
+// Disable Marble Owner
+//
+// Shows off PutState()
+//
+// Inputs - Array of Strings
+//       0     ,        1      
+//  owner id       , company that auth the transfer
+// "o9999999999999", "united_mables"
+// ============================================================================================================================
+func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var err error
+	fmt.Println("starting disable_voter")
 
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	// input sanitation
+	err = sanitize_arguments(args)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	var vid = args[0]
+	//var authed_by_company = args[1]
+
+	// get the marble owner data
+	voter, err := get_voter(stub, vid)
+	// this if might duplicating if in the get_voter func
+	if err != nil {
+		return shim.Error("This voter does not exist - " + vid)
+	}
+
+	// check authorizing company
+	//if owner.Company != authed_by_company {
+	//	return shim.Error("The company '" + authed_by_company + "' cannot change another companies marble owner")
+	//}
+
+	tR, err := strconv.Atoi(voter.tokensRemaining)
+	if tR <= 0 {
+		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
+		voter.Enabled = false
+		jsonAsBytes, _ := json.Marshal(voter)         //convert to array of bytes
+		err = stub.PutState(args[0], jsonAsBytes)     //rewrite the owner
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		fmt.Println("- end disable_voter")
+		return shim.Success(nil)
+	}
+
+	// disable the owner
+	/*owner.Enabled = false
+	jsonAsBytes, _ := json.Marshal(owner)         //convert to array of bytes
+	err = stub.PutState(args[0], jsonAsBytes)     //rewrite the owner
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end disable_owner")
+	return shim.Success(nil)
+	*/
+	return shim.Error("The voter '" + vid + "' has remainin tokens")
+
+}
+
+//*********************************************************************************
+//********************************** READ LEDGER **********************************
+//*********************************************************************************
 // ============================================================================================================================
 // Read - read a generic variable from ledger
 //
@@ -489,8 +561,9 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	return shim.Success(candidateAsbytes)                  //send it onward
 }
 
-
-//********************************** LIB **********************************
+//*********************************************************************************
+//********************************** LIB ******************************************
+//*********************************************************************************
 // ============================================================================================================================
 // Get Marble - get a marble asset from ledger
 //vid is the input
