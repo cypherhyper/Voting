@@ -59,7 +59,9 @@ type Voter struct {
 	//ecert
 	vID 						string `json:"vID"`
 	tokensBought    			string `json:"tokensBought"`
-	tokensUsedPerCandidate    string `json:"tokensUsedPerCandidate"` //Slice
+	//tokensUsedPerCandidate    string `json:"tokensUsedPerCandidate"` //Map oxi Slice!
+	//tokensUsedPerCandidate 		make(map[string]string) `json:"tokensUsedPerCandidate"`
+	tokensUsedPerCandidate 		map[string]string `json:"tokensUsedPerCandidate"`
 	tokensRemaining				string `json:"tokensRemaining"`
 	Enabled						bool `json:"Enabled"`
 }
@@ -176,8 +178,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return delete_candidate(stub, args)
 	}else if function == "disable_voter" {      //create a new marble
 		return disable_voter(stub, args)
-	}else if function == "init_voter" {      //create a new marble
-		return init_voter(stub, args)
+	}else if function == "transfer_vote" {      //create a new marble
+		return transfer_vote(stub, args)
 	}
 
 	// error out
@@ -216,7 +218,7 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//voter.ObjectType = "marble_owner"
 	voter.vID =  args[0]
 	voter.tokensBought = args[1]
-	voter.tokensUsedPerCandidate = args[2]
+	//voter.tokensUsedPerCandidate = args[2]
 	voter.tokensRemaining = args[1]
 	voter.Enabled = true
 	fmt.Println(voter)
@@ -424,6 +426,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	//	return shim.Error("The company '" + authed_by_company + "' cannot change another companies marble owner")
 	//}
 
+	// disable the owner
+	//duplicate if in transfer_vote
 	tR, err := strconv.Atoi(voter.tokensRemaining)
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
@@ -438,20 +442,120 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Success(nil)
 	}
 
-	// disable the owner
-	/*owner.Enabled = false
-	jsonAsBytes, _ := json.Marshal(owner)         //convert to array of bytes
-	err = stub.PutState(args[0], jsonAsBytes)     //rewrite the owner
+	return shim.Error("The voter '" + vid + "' has remainin tokens")
+}
+
+
+// ============================================================================================================================
+// Set Owner on Marble
+//
+// Shows off GetState() and PutState()
+//
+// Inputs - Array of Strings
+//       0     ,        1      ,        2
+//  marble id  ,  to owner id  , company that auth the transfer
+// "m999999999", "o99999999999", united_mables" 
+// ============================================================================================================================
+func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var voter Voter
+	var candidate Candidate
+	var err error
+	fmt.Println("starting transfer_vote")
+
+	// this is quirky
+	// todo - get the "company that authed the transfer" from the certificate instead of an argument
+	// should be possible since we can now add attributes to the enrollment cert
+	// as is.. this is a bit broken (security wise), but it's much much easier to demo! holding off for demos sake
+
+	if len(args) != 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
+	}
+
+	// input sanitation
+	err = sanitize_arguments(args)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	fmt.Println("- end disable_owner")
-	return shim.Success(nil)
-	*/
-	return shim.Error("The voter '" + vid + "' has remainin tokens")
+	vid := args[0]
+	//cName := args[1]
+	cid := args[1]
+	tokensToUse := args[2]
+	fmt.Println("The voter" + vid + "votes for the candidate" + cid + " with the amount of- |" + tokensToUse + "| -tokens.")
 
+	//check if user already exists
+	_, err = get_voter(stub, vid)//change to vid
+	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
+	if err != nil || voter.Enabled == false {
+		return shim.Error("This voter does not exist or is disabled- " + voter.vID)//change to vid
+	}
+
+	//check if user already exists
+	_, err = get_candidate(stub, cid)
+	if err != nil {
+		return shim.Error("This candidate does not exist - " + cid)//cid
+	}
+
+	tR, err := strconv.Atoi(voter.tokensRemaining)
+	tTU, err := strconv.Atoi(tokensToUse)
+	vR, err := strconv.Atoi(candidate.votesReceived)
+
+	if (tR >= tTU) {
+		tR = tR - tTU
+		vR = vR + tTU
+        voter.tokensUsedPerCandidate[cid] = tokensToUse
+	}else if (tR > 0 && tTU >tR) {
+		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.tokensRemaining + "| -")
+	}else if (tR <= 0) {
+		var v = []string {vid}
+		_ = disable_voter(stub, v)
+	}else{
+		fmt.Printf("None of the values is matching\n" )
+	}
+
+	// get marble's current state
+/*	marbleAsBytes, err := stub.GetState(marble_id)
+	if err != nil {
+		return shim.Error("Failed to get marble")
+	}
+	res := Marble{} //res = response
+	json.Unmarshal(marbleAsBytes, &res)           //un stringify it aka JSON.parse()
+
+	// check authorizing company
+	if res.Owner.Company != authed_by_company{
+		return shim.Error("The company '" + authed_by_company + "' cannot authorize transfers for '" + res.Owner.Company + "'.")
+	}
+	
+	// transfer the marble
+	res.Owner.Id = new_owner_id                   //change the owner
+	res.Owner.Username = owner.Username
+	res.Owner.Company = owner.Company
+	jsonAsBytes, _ := json.Marshal(res)           //convert to array of bytes
+	err = stub.PutState(args[0], jsonAsBytes)     //rewrite the marble with id as key
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+*/
+	//store user
+	voterAsBytes, _ := json.Marshal(voter)
+	err = stub.PutState(voter.vID, voterAsBytes)
+	if err != nil{
+		fmt.Println("Could not store user")
+		return shim.Error(err.Error())
+	}
+
+	//store user
+	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
+	err = stub.PutState(candidate.cID, candidateAsBytes)                    //store owner by its Id
+	if err != nil {
+		fmt.Println("Could not store user")
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end set owner")
+	return shim.Success(nil)
 }
+
 
 //*********************************************************************************
 //********************************** READ LEDGER **********************************
