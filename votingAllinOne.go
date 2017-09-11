@@ -229,7 +229,7 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println(voter)
 
 	//check if user already exists
-	_, err = get_voter(stub, voter.vID)
+	voter, err = get_voter(stub, voter.vID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	if err == nil {
 		fmt.Println("This voter already exists - " + voter.vID)
@@ -272,7 +272,7 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	fmt.Println(candidate)
 
 	//check if user already exists
-	_, err = get_candidate(stub, candidate.cID)
+	candidate, err = get_candidate(stub, candidate.cID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	//apo == to ekane != gt dn leitourgouse swsta.check it again
 	if err != nil {
@@ -716,11 +716,11 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 	json.Unmarshal(candidateAsBytes, &candidate)                   //un stringify it aka JSON.parse()
 
 	if candidate.cID != cid {
-		fmt.Println("Voter does not exist - " + cid)      //test if marble is actually here or just nil
-		return candidate, errors.New("Candidate does not exist - " + cid) //ta idia me get_voter
+		fmt.Println("Candidate does not exist - " + cid)      //test if marble is actually here or just nil
+		return candidate, nil //ta idia me get_voter
 	}
 
-	return candidate, nil
+	return candidate, errors.New("Candidate does not exist - " + cid)
 }
 
 
