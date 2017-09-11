@@ -231,13 +231,14 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//check if user already exists
 	voter, err = get_voter(stub, voter.vID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
-	if err == nil {
+	if err != nil {
 		fmt.Println("This voter already exists - " + voter.vID)
 		return shim.Error("This voter already exists - " + voter.vID)
 	}
 
 	//store user
 	voterAsBytes, _ := json.Marshal(voter)                         //convert to array of bytes
+	fmt.Println(" putting state in block")
 	err = stub.PutState(voter.vID, voterAsBytes)                    //store owner by its Id
 	fmt.Println(voter.vID + " voter has been stored")
 	if err != nil {
@@ -290,7 +291,7 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	fmt.Println("- end init_candidate")
-	return shim.Success(true)
+	return shim.Success(nil)
 }
 
 
@@ -699,10 +700,10 @@ func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 
 	if voter.vID != vid {  
 		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
-		return voter, errors.New("Voter does not exist - " + vid) // leitourgei otan kanw delete egguro/akuro vID
+		return voter, nil // leitourgei otan kanw delete egguro/akuro vID
 	}
 
-	return voter, true //true to error enw tha eprepe na einai false
+	return voter, errors.New("Voter exists - " + vid) //true to error enw tha eprepe na einai false
 }
 
 
@@ -717,10 +718,10 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 
 	if candidate.cID != cid {
 		fmt.Println("Candidate does not exist - " + cid)      //test if marble is actually here or just nil
-		return candidate, false //false to error
+		return candidate, nil 
 	}
 
-	return candidate, errors.New("Candidate does not exist - " + cid)
+	return candidate, errors.New("Candidate exists - " + cid)
 }
 
 
