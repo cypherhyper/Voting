@@ -199,13 +199,18 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 //           0     ,     1   ,   2
 //      owner id   , username, company
 // "o9999999999999",     bob", "united marbles"
+//
+// Inputs - Array of Strings
+//           0     ,         1   ,   2
+//      voter id   , tokensBought, company
+//           "v001",       "100" , "united marbles"
 // ============================================================================================================================
 func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
-	fmt.Println("starting init_owner")
+	fmt.Println("starting init_voter")
 
-	if len(args) != 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 3")
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
 	//input sanitation
@@ -227,29 +232,29 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	_, err = get_voter(stub, voter.vID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	if err == nil {
-		fmt.Println("This owner already exists - " + voter.vID)
-		return shim.Error("This owner already exists - " + voter.vID)
+		fmt.Println("This voter already exists - " + voter.vID)
+		return shim.Error("This voter already exists - " + voter.vID)
 	}
 
 	//store user
 	voterAsBytes, _ := json.Marshal(voter)                         //convert to array of bytes
 	err = stub.PutState(voter.vID, voterAsBytes)                    //store owner by its Id
 	if err != nil {
-		fmt.Println("Could not store user")
+		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
 	}
 
-	fmt.Println("- end init_voter marble")
+	fmt.Println("- end init_voter")
 	return shim.Success(nil)
 }
 
 
 func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
-	fmt.Println("starting init_owner")
+	fmt.Println("starting init_candidate")
 
-	if len(args) != 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 3")
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
 	//input sanitation
@@ -262,27 +267,26 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	//voter.ObjectType = "marble_owner"
 	candidate.cID =  args[0]
 	candidate.candidateName = args[1]
-	candidate.votesReceived = args[2]
-	//owner.Enabled = true
+	//candidate.votesReceived = args[2]
 	fmt.Println(candidate)
 
 	//check if user already exists
 	_, err = get_candidate(stub, candidate.cID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	if err == nil {
-		fmt.Println("This owner already exists - " + candidate.cID)
-		return shim.Error("This owner already exists - " + candidate.cID)
+		fmt.Println("This candidate already exists - " + candidate.cID)
+		return shim.Error("This candidate already exists - " + candidate.cID)
 	}
 
 	//store user
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
 	err = stub.PutState(candidate.cID, candidateAsBytes)                    //store owner by its Id
 	if err != nil {
-		fmt.Println("Could not store user")
+		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
 	}
 
-	fmt.Println("- end init_voter marble")
+	fmt.Println("- end init_candidate")
 	return shim.Success(nil)
 }
 
@@ -301,7 +305,7 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 // ============================================================================================================================
 func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response) {
 	//might be need to provide the var voter Voter 
-	fmt.Println("starting delete_marble")
+	fmt.Println("starting delete_voter")
 
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
@@ -319,7 +323,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 	// get the marble
 	voter, err := get_voter(stub, vid)
 	if err != nil{
-		fmt.Println("Failed to find marble by vid " + vid)
+		fmt.Println("Failed to find voter by vid " + vid)
 		return shim.Error(err.Error())
 	}
 
@@ -338,7 +342,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 		return shim.Error("Failed to delete state")
 	}
 
-	fmt.Println("- end delete_marble")
+	fmt.Println("- end delete_voter")
 	return shim.Success(nil)
 }
 
@@ -363,7 +367,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 	// get the marble
 	candidate, err := get_candidate(stub, cid)
 	if err != nil{
-		fmt.Println("Failed to find marble by vid " + cid)
+		fmt.Println("Failed to find candidate by cid " + cid)
 		return shim.Error(err.Error())
 	}
 
@@ -373,7 +377,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 	//}
 
 	if candidate.cID != cid {                                     //test if marble is actually here or just nil
-		return shim.Error("Not the same voter ID provided")	//the existance of the voter is checked in the get_voter func
+		return shim.Error("Not the same candidate ID provided")	//the existance of the voter is checked in the get_voter func
 	}
 
 	// remove the marble
@@ -382,7 +386,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 		return shim.Error("Failed to delete state")
 	}
 
-	fmt.Println("- end delete_marble")
+	fmt.Println("- end delete_candidate")
 	return shim.Success(nil)
 }
 
@@ -442,7 +446,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Success(nil)
 	}
 
-	return shim.Error("The voter '" + vid + "' has remainin tokens")
+	return shim.Error("The voter '" + vid + "' has remaining tokens")
 }
 
 
@@ -508,6 +512,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.tokensRemaining + "| -")
 	}else if (tR <= 0) {
 		var v = []string {vid}
+		fmt.Printf("The voter with vid" + vid + "is gonna be disabled")
 		_ = disable_voter(stub, v)
 	}else{
 		fmt.Printf("None of the values is matching\n" )
@@ -540,7 +545,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	voterAsBytes, _ := json.Marshal(voter)
 	err = stub.PutState(voter.vID, voterAsBytes)
 	if err != nil{
-		fmt.Println("Could not store user")
+		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
 	}
 
@@ -548,11 +553,11 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
 	err = stub.PutState(candidate.cID, candidateAsBytes)                    //store owner by its Id
 	if err != nil {
-		fmt.Println("Could not store user")
+		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
 	}
 
-	fmt.Println("- end set owner")
+	fmt.Println("- end transfer_vote")
 	return shim.Success(nil)
 }
 
@@ -576,7 +581,7 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//var voter Voter
 	var jsonResp string
 	var err error
-	fmt.Println("starting read")
+	fmt.Println("starting read_voter")
 
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting key of the var to query")
@@ -612,7 +617,7 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		jsonResp = "{\"Error\":\"Failed to get state for " + vid + "\"}"
 		return shim.Error(jsonResp)
 	}
-
+	fmt.Println("read was successful\n")
 	fmt.Println("- end read")
 	//return shim.Success(valAsbytes)
 	return shim.Success(voterAsbytes)                  //send it onward
@@ -620,10 +625,10 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 
 func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//var voter Voter
+	var candidate Candidate //prostethike gia to json.Unmarshal etsi wste na ginetai print swsto.
 	var jsonResp string
 	var err error
-	fmt.Println("starting read")
+	fmt.Println("starting read candidate")
 
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting key of the var to query")
@@ -659,7 +664,9 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		jsonResp = "{\"Error\":\"Failed to get state for " + cid + "\"}"
 		return shim.Error(jsonResp)
 	}
-
+	json.Unmarshal(candidateAsbytes, &candidate)
+	fmt.Println("the candidate: -| " + candidate.cID + " |- ")
+	fmt.Println("read was successful\n")
 	fmt.Println("- end read")
 	//return shim.Success(valAsbytes)
 	return shim.Success(candidateAsbytes)                  //send it onward
@@ -709,7 +716,6 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 
 // ========================================================
 // Input Sanitation - dumb input checking, look for empty strings
-//didn't change it, seems ok
 // ========================================================
 func sanitize_arguments(strs []string) error{
 	for i, val := range strs {
