@@ -290,7 +290,7 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	fmt.Println("- end init_candidate")
-	return shim.Success(nil)
+	return shim.Success(true)
 }
 
 
@@ -702,7 +702,7 @@ func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 		return voter, errors.New("Voter does not exist - " + vid) // leitourgei otan kanw delete egguro/akuro vID
 	}
 
-	return voter, nil
+	return voter, true //true to error enw tha eprepe na einai false
 }
 
 
@@ -717,7 +717,7 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 
 	if candidate.cID != cid {
 		fmt.Println("Candidate does not exist - " + cid)      //test if marble is actually here or just nil
-		return candidate, nil //ta idia me get_voter
+		return candidate, false //false to error
 	}
 
 	return candidate, errors.New("Candidate does not exist - " + cid)
