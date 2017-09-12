@@ -703,9 +703,10 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	var voter Voter
 	voterAsBytes, err := stub.GetState(vid)                  //getState retreives a key/value from the ledger
-
+	// If the key does not exist in the state database, (nil, nil) is returned.
+    //GetState(key string) ([]byte, error)
 	//err == true
-	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+	if err == nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
 		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
 		json.Unmarshal(voterAsBytes, &voter)
 		return voter, errors.New("Voter does not exist - " + vid)
