@@ -220,20 +220,27 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	var voter Voter
-	//voter.ObjectType = "marble_owner"
+/*	//voter.ObjectType = "marble_owner"
 	voter.vID =  args[0]
 	voter.tokensBought = args[1]
 	//voter.tokensUsedPerCandidate = args[2]
 	voter.tokensRemaining = args[1]
 	voter.Enabled = true
 	fmt.Println(voter)
+*/
+	_vid :=  args[0]
+	_tokensBought := args[1]
+	//voter.tokensUsedPerCandidate = args[2]
+	_tokensRemaining := args[1]
+	_Enabled := true
+	fmt.Println("ID: " + _vid + " tokensBought: " + _tokensBought + " tokensRemaining: " + _tokensRemaining + " Active: " + strconv.FormatBool(_Enabled))
 
 	//check if user already exists
-	voter, err = get_voter(stub, voter.vID)
-	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
-	if err != nil {
-		fmt.Println("This voter already exists - " + voter.vID)
-		return shim.Error("This voter already exists - " + voter.vID)
+	voter, err = get_voter(stub, _vid)
+	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error <- I've changed that
+	if err == nil {
+		fmt.Println("This voter already exists - " + _vid)
+		return shim.Error("This voter already exists - " + _vid)
 	}
 
 	//store user
@@ -452,7 +459,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Success(nil)
 	}
 
-	return shim.Error("The voter '" + vid + "' has remaining tokens")
+	return shim.Error("The voter '" + vid + "' has " + voter.tokensRemaining + " remaining tokens")
 }
 
 
@@ -515,7 +522,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		tR = tR - tTU
 		vR = vR + tTU
 		voter.tokensRemaining = strconv.Itoa(tR)
-		fmt.Println("the voter's remaining tokes are " + voter.tokensRemaining)
+		fmt.Println("the voter's remaining tokens are " + voter.tokensRemaining)
         voter.tokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
 		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.tokensRemaining + "| -")
@@ -587,7 +594,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 // Returns - string
 // ============================================================================================================================
 func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//var voter Voter
 	var jsonResp string
 	var err error
 	fmt.Println("starting read_voter")
@@ -627,6 +633,9 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error(jsonResp)
 	}
 	fmt.Println("read was successful")
+	var voter Voter
+	json.Unmarshal(voterAsbytes, &voter)
+	fmt.Println(voter)
 	fmt.Println("- end read")
 	//return shim.Success(valAsbytes)
 	return shim.Success(voterAsbytes)                  //send it onward
@@ -688,22 +697,36 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 // Get Marble - get a marble asset from ledger
 //vid is the input
 //vID is from struct Voter
+//estw v001=voter.vID->init vid=v001->GetState(001)->unmarshal(001) &voter(001)->001!=001 ?
+//voter.vID != vid -> Dld elegxei an h domh me 001 einai diaforetikh me 001??auto den einai anousio?
 // ============================================================================================================================
 func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	var voter Voter
 	voterAsBytes, err := stub.GetState(vid)                  //getState retreives a key/value from the ledger
 
+	//err == true
 	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
+		json.Unmarshal(voterAsBytes, &voter)
+		return voter, errors.New("Voter does not exist - " + vid)
+	} else {
+		fmt.Println("Voter exists - " + vid)
+		return voter, nil //
+		//, errors.New("Voter exists - " + vid)
+	}
+
+/*	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
 		return voter, errors.New("Failed to find voter - " + vid)
 	}
 	json.Unmarshal(voterAsBytes, &voter)                   //un stringify it aka JSON.parse()
 
+	//auto to if fainetai axrhsto
 	if voter.vID != vid {  
 		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
 		return voter, nil // leitourgei otan kanw delete egguro/akuro vID
 	}
-
-	return voter, errors.New("Voter exists - " + vid) //true to error enw tha eprepe na einai false
+*/
+	
 }
 
 
