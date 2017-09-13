@@ -57,21 +57,21 @@ type  SimpleChaincode struct {
 type Voter struct {
 	//identity
 	//ecert
-	vID 						string `json:"vID"`
-	tokensBought    			string `json:"tokensBought"`
-	//tokensUsedPerCandidate    string `json:"tokensUsedPerCandidate"` //Map oxi Slice!
-	//tokensUsedPerCandidate 		make(map[string]string) `json:"tokensUsedPerCandidate"`
-	tokensUsedPerCandidate 		map[string]string `json:"tokensUsedPerCandidate"`
-	tokensRemaining				string `json:"tokensRemaining"`
+	VID 						string `json:"VID"`
+	TokensBought    			string `json:"TokensBought"`
+	//TokensUsedPerCandidate    string `json:"TokensUsedPerCandidate"` //Map oxi Slice!
+	//TokensUsedPerCandidate 		make(map[string]string) `json:"TokensUsedPerCandidate"`
+	//TokensUsedPerCandidate 		map[string]string `json:"TokensUsedPerCandidate"`
+	TokensRemaining				string `json:"TokensRemaining"`
 	Enabled						bool `json:"Enabled"`
 }
 
 type Candidate struct {
 	//identity
 	//ecert
-	cID 				string `json:"cID"`
-	candidateName    string `json:"candidateName"`
-	votesReceived    string `json:"votesReceived"`
+	CID 				string `json:"CID"`
+	CandidateName    string `json:"CandidateName"`
+	VotesReceived    string `json:"VotesReceived"`
 }
 
 
@@ -202,7 +202,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 //
 // Inputs - Array of Strings
 //           0     ,         1   ,   2
-//      voter id   , tokensBought, company
+//      voter id   , TokensBought, company
 //           "v001",       "100" , "united marbles"
 // ============================================================================================================================
 func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -221,19 +221,19 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	var voter Voter
 /*	//voter.ObjectType = "marble_owner"
-	voter.vID =  args[0]
-	voter.tokensBought = args[1]
-	//voter.tokensUsedPerCandidate = args[2]
-	voter.tokensRemaining = args[1]
+	voter.VID =  args[0]
+	voter.TokensBought = args[1]
+	//voter.TokensUsedPerCandidate = args[2]
+	voter.TokensRemaining = args[1]
 	voter.Enabled = true
 	fmt.Println(voter)
 */
 	_vid :=  args[0]
-	_tokensBought := args[1]
-	//voter.tokensUsedPerCandidate = args[2]
-	_tokensRemaining := args[1]
+	_TokensBought := args[1]
+	//voter.TokensUsedPerCandidate = args[2]
+	_TokensRemaining := args[1]
 	_Enabled := true
-	fmt.Println("ID: " + _vid + " tokensBought: " + _tokensBought + " tokensRemaining: " + _tokensRemaining + " Active: " + strconv.FormatBool(_Enabled))
+	fmt.Println("ID: " + _vid + " TokensBought: " + _TokensBought + " TokensRemaining: " + _TokensRemaining + " Active: " + strconv.FormatBool(_Enabled))
 
 	//check if user already exists
 	voter, err = get_voter(stub, _vid)
@@ -246,8 +246,8 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//store user
 	voterAsBytes, _ := json.Marshal(voter)                         //convert to array of bytes
 	fmt.Println(" putting state in block")
-	err = stub.PutState(voter.vID, voterAsBytes)                    //store owner by its Id
-	fmt.Println(voter.vID + " voter has been stored")
+	err = stub.PutState(voter.VID, voterAsBytes)                    //store owner by its Id
+	fmt.Println(voter.VID + " voter has been stored")
 	if err != nil {
 		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
@@ -274,24 +274,24 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 
 	var candidate Candidate
 	//voter.ObjectType = "marble_owner"
-	candidate.cID =  args[0]
-	candidate.candidateName = args[1]
-	//candidate.votesReceived = args[2]
+	candidate.CID =  args[0]
+	candidate.CandidateName = args[1]
+	//candidate.VotesReceived = args[2]
 	fmt.Println(candidate)
 
 	//check if user already exists
-	candidate, err = get_candidate(stub, candidate.cID)
+	candidate, err = get_candidate(stub, candidate.CID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	//apo == to ekane != gt dn leitourgouse swsta.check it again
 	if err != nil {
-		fmt.Println("This candidate already exists - " + candidate.cID)
-		return shim.Error("This candidate already exists - " + candidate.cID)
+		fmt.Println("This candidate already exists - " + candidate.CID)
+		return shim.Error("This candidate already exists - " + candidate.CID)
 	}
 
 	//store user
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
-	err = stub.PutState(candidate.cID, candidateAsBytes)                    //store owner by its Id
-	fmt.Println(candidate.cID + " candidate has been stored")
+	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store owner by its Id
+	fmt.Println(candidate.CID + " candidate has been stored")
 	if err != nil {
 		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
@@ -343,7 +343,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 	//	return shim.Error("The company '" + authed_by_company + "' cannot authorize deletion for '" + marble.Owner.Company + "'.")
 	//}
 
-	if voter.vID != vid {                                     //test if marble is actually here or just nil
+	if voter.VID != vid {                                     //test if marble is actually here or just nil
 		return shim.Error("Not the same voter ID provided")	//the existance of the voter is checked in the get_voter func
 	}
 
@@ -387,7 +387,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 	//	return shim.Error("The company '" + authed_by_company + "' cannot authorize deletion for '" + marble.Owner.Company + "'.")
 	//}
 
-	if candidate.cID != cid {                                     //test if marble is actually here or just nil
+	if candidate.CID != cid {                                     //test if marble is actually here or just nil
 		return shim.Error("Not the same candidate ID provided")	//the existance of the voter is checked in the get_voter func
 	}
 
@@ -445,7 +445,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	// disable the owner
 	//duplicate if in transfer_vote
-	tR, err := strconv.Atoi(voter.tokensRemaining)
+	tR, err := strconv.Atoi(voter.TokensRemaining)
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
@@ -459,7 +459,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Success(nil)
 	}
 
-	return shim.Error("The voter '" + vid + "' has " + voter.tokensRemaining + " remaining tokens")
+	return shim.Error("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
 }
 
 
@@ -504,7 +504,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	voter, err = get_voter(stub, vid)//change to vid
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
 	if err != nil || voter.Enabled == false {
-		return shim.Error("This voter does not exist or is disabled- " + voter.vID)//change to vid
+		return shim.Error("This voter does not exist or is disabled- " + voter.VID)//change to vid
 	}
 
 	//check if user already exists
@@ -514,18 +514,18 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	}
 
 	//var tR *int
-	tR, err := strconv.Atoi(voter.tokensRemaining)
+	tR, err := strconv.Atoi(voter.TokensRemaining)
 	tTU, err := strconv.Atoi(tokensToUse)
-	vR, err := strconv.Atoi(candidate.votesReceived)
+	vR, err := strconv.Atoi(candidate.VotesReceived)
 
 	if (tR >= tTU) {
 		tR = tR - tTU
 		vR = vR + tTU
-		voter.tokensRemaining = strconv.Itoa(tR)
-		fmt.Println("the voter's remaining tokens are " + voter.tokensRemaining)
-        voter.tokensUsedPerCandidate[cid] = tokensToUse
+		voter.TokensRemaining = strconv.Itoa(tR)
+		fmt.Println("the voter's remaining tokens are " + voter.TokensRemaining)
+        //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
-		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.tokensRemaining + "| -")
+		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 	}else if (tR <= 0) {
 		var v = []string {vid}
 		fmt.Printf("The voter with vid " + vid + " is gonna be disabled")
@@ -559,7 +559,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 */
 	//store user
 	voterAsBytes, _ := json.Marshal(voter)
-	err = stub.PutState(voter.vID, voterAsBytes)
+	err = stub.PutState(voter.VID, voterAsBytes)
 	if err != nil{
 		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
@@ -567,7 +567,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	//store user
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
-	err = stub.PutState(candidate.cID, candidateAsBytes)                    //store owner by its Id
+	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store owner by its Id
 	if err != nil {
 		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
@@ -609,7 +609,7 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	/*
-	voter.vID = args[0]
+	voter.VID = args[0]
 	vid = args[0]
 	valAsbytes, err := stub.GetState(vid)           //get the var from ledger
 	if err != nil {
@@ -659,7 +659,7 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	/*
-	voter.vID = args[0]
+	voter.VID = args[0]
 	vid = args[0]
 	valAsbytes, err := stub.GetState(vid)           //get the var from ledger
 	if err != nil {
@@ -683,7 +683,7 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		return shim.Error(jsonResp)
 	}
 	json.Unmarshal(candidateAsbytes, &candidate)
-	fmt.Println("the candidate: -| " + candidate.cID + " |- ")//den leitourgei
+	fmt.Println("the candidate: -| " + candidate.CID + " |- ")//den leitourgei
 	fmt.Println("read was successful")
 	fmt.Println("- end read")
 	//return shim.Success(valAsbytes)
@@ -696,9 +696,9 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 // ============================================================================================================================
 // Get Marble - get a marble asset from ledger
 //vid is the input
-//vID is from struct Voter
-//estw v001=voter.vID->init vid=v001->GetState(001)->unmarshal(001) &voter(001)->001!=001 ?
-//voter.vID != vid -> Dld elegxei an h domh me 001 einai diaforetikh me 001??auto den einai anousio?
+//VID is from struct Voter
+//estw v001=voter.VID->init vid=v001->GetState(001)->unmarshal(001) &voter(001)->001!=001 ?
+//voter.VID != vid -> Dld elegxei an h domh me 001 einai diaforetikh me 001??auto den einai anousio?
 // ============================================================================================================================
 func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	var voter Voter
@@ -722,9 +722,9 @@ func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	json.Unmarshal(voterAsBytes, &voter)                   //un stringify it aka JSON.parse()
 
 	//auto to if fainetai axrhsto
-	if voter.vID != vid {  
+	if voter.VID != vid {  
 		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
-		return voter, nil // leitourgei otan kanw delete egguro/akuro vID
+		return voter, nil // leitourgei otan kanw delete egguro/akuro VID
 	}
 */
 	
@@ -740,7 +740,7 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 	}
 	json.Unmarshal(candidateAsBytes, &candidate)                   //un stringify it aka JSON.parse()
 
-	if candidate.cID != cid {
+	if candidate.CID != cid {
 		fmt.Println("Candidate does not exist - " + cid)      //test if marble is actually here or just nil
 		return candidate, nil 
 	}
