@@ -220,27 +220,28 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	var voter Voter
-/*	//voter.ObjectType = "marble_owner"
-	voter.VID =  args[0]
+	//voter.ObjectType = "marble_owner"
+	voter.VID = args[0]
 	voter.TokensBought = args[1]
 	//voter.TokensUsedPerCandidate = args[2]
 	voter.TokensRemaining = args[1]
 	voter.Enabled = true
 	fmt.Println(voter)
-*/
-	_vid :=  args[0]
+
+/*	_vid :=  args[0]
 	_TokensBought := args[1]
 	//voter.TokensUsedPerCandidate = args[2]
 	_TokensRemaining := args[1]
 	_Enabled := true
-	fmt.Println("ID: " + _vid + " TokensBought: " + _TokensBought + " TokensRemaining: " + _TokensRemaining + " Active: " + strconv.FormatBool(_Enabled))
-
+*/
+//	fmt.Println("ID: " + _vid + " TokensBought: " + _TokensBought + " TokensRemaining: " + _TokensRemaining + " Active: " + strconv.FormatBool(_Enabled))
+	fmt.Println("ID: " + voter.VID + ", TokensBought: " + voter.TokensBought + ", TokensRemaining: " + voter.TokensRemaining + ", Active: " + strconv.FormatBool(voter.Enabled))
 	//check if user already exists
-	voter, err = get_voter(stub, _vid)
+	_, err = get_voter(stub, voter.VID)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error <- I've changed that
 	if err == nil {
-		fmt.Println("This voter already exists - " + _vid)
-		return shim.Error("This voter already exists - " + _vid)
+		fmt.Println("This voter already exists - " + voter.VID)
+		return shim.Error("This voter already exists - " + voter.VID)
 	}
 
 	//store user
