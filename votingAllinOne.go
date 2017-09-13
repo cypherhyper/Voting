@@ -264,8 +264,8 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	//voter.ObjectType = "marble_owner"
 	candidate.CID =  args[0]
 	candidate.CandidateName = args[1]
-	//candidate.VotesReceived = args[2]
-	fmt.Println(candidate)
+	candidate.VotesReceived = "0"
+	fmt.Println("ID: " + candidate.CID + ", CandidateName: " + candidate.CandidateName + ", VotesReceived: " + candidate.VotesReceived)
 
 	//check if user already exists
 	_, err = get_candidate(stub, candidate.CID)
@@ -325,6 +325,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 		return shim.Error(err.Error())
 	}
 
+	//nmzw einai axrhsto gt ama dn uparxei to ID xtypaei to apo panw error.
 	if voter.VID != vid {          							//test if marble is actually here or just nil
 		return shim.Error("Not the same voter ID provided")	//the existance of the voter is checked in the get_voter func
 	}
@@ -335,6 +336,7 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 		return shim.Error("Failed to delete state")
 	}
 
+	fmt.Println(voter.VID + " voter has been deleted")
 	fmt.Println("- end delete_voter")
 	return shim.Success(nil)
 }
@@ -363,6 +365,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 		return shim.Error(err.Error())
 	}
 
+	//nmzw einai axrhsto gt ama dn uparxei to ID xtypaei to apo panw error.
 	if candidate.CID != cid {                                     //test if marble is actually here or just nil
 		return shim.Error("Not the same candidate ID provided")	//the existance of the voter is checked in the get_voter func
 	}
@@ -373,6 +376,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 		return shim.Error("Failed to delete state")
 	}
 
+	fmt.Println(candidate.CID + " candidate has been deleted")
 	fmt.Println("- end delete_candidate")
 	return shim.Success(nil)
 }
@@ -428,7 +432,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Success(nil)
 	}
 
-	fmt.Println("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
+	fmt.Println("The voter '" + vid + "' has '" + voter.TokensRemaining + "' remaining tokens")
 	return shim.Error("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
 }
 
@@ -467,7 +471,12 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	vid := args[0]
 	cid := args[1]
 	tokensToUse := args[2]
-	fmt.Println("The voter " + vid + " votes for the candidate " + cid + " with the amount of- |" + tokensToUse + "| -tokens.")
+
+	tTU, err := strconv.Atoi(tokensToUse)
+	if tTU <= 0 {
+		return shim.Error("This voter didn't insert enough tokens to use- " + tokensToUse)
+	}
+	fmt.Println("The voter '" + vid + "' votes for the candidate '" + cid + "' with the amount of- |" + tokensToUse + "| -tokens.")
 
 	//check if user already exists
 	voter, err = get_voter(stub, vid)//change to vid
@@ -484,23 +493,24 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	//var tR *int
 	tR, err := strconv.Atoi(voter.TokensRemaining)
-	tTU, err := strconv.Atoi(tokensToUse)
 	vR, err := strconv.Atoi(candidate.VotesReceived)
 
-	if (tR >= tTU) {
+	if (tR >= tTU && tR > 0) {
 		tR = tR - tTU
 		vR = vR + tTU
 		voter.TokensRemaining = strconv.Itoa(tR)
-		fmt.Println("the voter's remaining tokens are " + voter.TokensRemaining)
+		fmt.Println("The voter's remaining tokens are " + voter.TokensRemaining)
+        candidate.VotesReceived = strconv.Itoa(vR)
+        fmt.Println("The candidate has recieved in total " + candidate.VotesReceived + "tokens.")
         //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
 		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
-	}else if (tR <= 0) {
+	}
+
+	if (tR <= 0) {
 		var v = []string {vid}
 		fmt.Printf("The voter with vid " + vid + " is gonna be disabled")
 		_ = disable_voter(stub, v)
-	}else{
-		fmt.Printf("None of the values is matching\n" )
 	}
 
 	//store user
@@ -640,7 +650,6 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 	json.Unmarshal(candidateAsBytes, &candidate)                   //un stringify it aka JSON.parse()
 
 	if candidate.CID != cid {
-		fmt.Println("Candidate does not exist - " + cid)      //test if marble is actually here or just nil
 		return candidate, errors.New("Candidate does not exist - " + cid) 
 	}
 
