@@ -247,11 +247,11 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	voterAsBytes, _ := json.Marshal(voter)                         //convert to array of bytes
 	fmt.Println(" putting state in block")
 	err = stub.PutState(voter.VID, voterAsBytes)                    //store owner by its Id
-	fmt.Println(voter.VID + " voter has been stored")
 	if err != nil {
 		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
 	}
+	fmt.Println(voter.VID + " voter has been stored")
 
 	fmt.Println("- end init_voter")
 	return shim.Success(nil)
@@ -705,31 +705,20 @@ func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	voterAsBytes, err := stub.GetState(vid)                  //getState retreives a key/value from the ledger
 	// If the key does not exist in the state database, (nil, nil) is returned.
     //GetState(key string) ([]byte, error)
-	//err == true
-	if err == nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
-		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
-		json.Unmarshal(voterAsBytes, &voter)
-		return voter, errors.New("Voter does not exist - " + vid)
-	} else {
-		fmt.Println("Voter exists - " + vid)
-		return voter, nil //
-		//, errors.New("Voter exists - " + vid)
-	}
 
-/*	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+	//den ektupwnetai pote
+	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
 		return voter, errors.New("Failed to find voter - " + vid)
 	}
 	json.Unmarshal(voterAsBytes, &voter)                   //un stringify it aka JSON.parse()
 
-	//auto to if fainetai axrhsto
+	//ektupwthike kata to delete_marble
 	if voter.VID != vid {  
-		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
-		return voter, nil // leitourgei otan kanw delete egguro/akuro VID
+		return voter, errors.New("Voter does not exist - " + vid)  //test if marble is actually here or just nil
 	}
-*/
-	
-}
 
+	return voter, nil
+}
 
 func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, error) {
 	var candidate Candidate
@@ -763,3 +752,33 @@ func sanitize_arguments(strs []string) error{
 	}
 	return nil
 }
+
+/*func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
+	var voter Voter
+	voterAsBytes, err := stub.GetState(vid)                  //getState retreives a key/value from the ledger
+	// If the key does not exist in the state database, (nil, nil) is returned.
+    //GetState(key string) ([]byte, error)
+	//err == true
+	if err == nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
+		json.Unmarshal(voterAsBytes, &voter)
+		return voter, errors.New("Voter does not exist - " + vid)
+	} else {
+		fmt.Println("Voter exists - " + vid)
+		return voter, nil //
+		//, errors.New("Voter exists - " + vid)
+	}
+
+/*	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+		return voter, errors.New("Failed to find voter - " + vid)
+	}
+	json.Unmarshal(voterAsBytes, &voter)                   //un stringify it aka JSON.parse()
+
+	//auto to if fainetai axrhsto
+	if voter.VID != vid {  
+		fmt.Println("Voter does not exist - " + vid)  //test if marble is actually here or just nil
+		return voter, nil // leitourgei otan kanw delete egguro/akuro VID
+	}
+	
+}
+*/
