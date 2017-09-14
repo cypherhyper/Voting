@@ -22,7 +22,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"time"
 	//"bytes"
 	"strconv"
 	//"strings"
@@ -430,6 +429,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
+		fmt.Println(voter)
+		voter, err = get_voter(stub, vid)
 		fmt.Println(voter)	
 		voterAsBytes, _ := json.Marshal(voter)
 		err = stub.PutState(voter.VID, voterAsBytes)
@@ -541,7 +542,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			return shim.Error(err.Error())
 		}
 		_ = disable_voter(stub, v)
-		time.Sleep(2 * time.Second)
 		voter, err = get_voter(stub, vid)
 		if err != nil{
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
