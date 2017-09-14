@@ -412,6 +412,10 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	// get the marble owner data
 	voter, err = get_voter(stub, vid)
+	if err != nil{
+		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
+		return shim.Error(err.Error())
+	}
 	// this if might duplicating if in the get_voter func
 	fmt.Println("\nafter get_voter")
 	fmt.Println(voter)
@@ -489,6 +493,10 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	//check if user already exists
 	voter, err = get_voter(stub, vid)//change to vid
+	if err != nil{
+		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
+		return shim.Error(err.Error())
+	}
 	fmt.Println("get_ v")
 	fmt.Println(voter)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
@@ -535,6 +543,10 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		_ = disable_voter(stub, v)
 		time.Sleep(2 * time.Second)
 		voter, err = get_voter(stub, vid)
+		if err != nil{
+		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
+		return shim.Error(err.Error())
+	}
 		fmt.Println("after- tR: " + voter.TokensRemaining)
 		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
