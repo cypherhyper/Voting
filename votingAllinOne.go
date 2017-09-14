@@ -172,8 +172,6 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return read_candidate(stub, args)
 	}else if function == "delete_candidate" {      //create a new marble
 		return delete_candidate(stub, args)
-	}else if function == "disable_voter" {      //create a new marble
-		return disable_voter(stub, args)
 	}else if function == "transfer_vote" {      //create a new marble
 		return transfer_vote(stub, args)
 	}
@@ -392,12 +390,11 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 //  owner id       , company that auth the transfer
 // "o9999999999999", "united_mables"
 // ============================================================================================================================
-func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, error){
 	var voter Voter
-	var err error
 	fmt.Println("starting disable_voter")
 
-	if len(args) != 1 {
+	/*if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
 
@@ -406,7 +403,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-
+*/
 	var vid = args[0]
 
 /*	// get the marble owner data
@@ -425,10 +422,11 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 */
 	// disable the owner
 	//duplicate if in transfer_vote
-	tR, err := strconv.Atoi(voter.TokensRemaining)
+	tR,_ := strconv.Atoi(voter.TokensRemaining)
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
+		fmt.Println(voter)
 /*		voter, err := get_voter(stub, vid)
 	if err != nil{
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
@@ -444,11 +442,11 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			return shim.Error(err.Error())
 		}
 */		fmt.Println("- end disable_voter")
-		return shim.Success(nil)
+		return voter, nil
 	}
 
 	fmt.Println("The voter '" + vid + "' has '" + voter.TokensRemaining + "' remaining tokens")
-	return shim.Error("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
+	return voter,errors.New("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
 }
 
 
@@ -546,7 +544,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			fmt.Println("Could not store voter")
 			return shim.Error(err.Error())
 		}
-		_ = disable_voter(stub, v)
+		voter,_ = disable_voter(stub, v)
 /*		voter, err = get_voter(stub, vid)
 		if err != nil{
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
