@@ -426,6 +426,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, erro
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
+		voter.TokensRemaining = "0"
 		fmt.Println(voter)
 /*		voter, err := get_voter(stub, vid)
 	if err != nil{
