@@ -466,6 +466,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	// as is.. this is a bit broken (security wise), but it's much much easier to demo! holding off for demos sake
 
 	if len(args) != 3 {
+		fmt.Println("Incorrect number of arguments. Expecting 3")
 		return shim.Error("Incorrect number of arguments. Expecting 3")
 	}
 
@@ -481,6 +482,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	tTU, err := strconv.Atoi(tokensToUse)
 	if tTU <= 0 {
+		fmt.Println("This voter didn't insert enough tokens to use- " + tokensToUse)
 		return shim.Error("This voter didn't insert enough tokens to use- " + tokensToUse)
 	}
 	fmt.Println("The voter '" + vid + "' votes for the candidate '" + cid + "' with the amount of- |" + tokensToUse + "| -tokens.")
@@ -532,6 +534,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		}
 		_ = disable_voter(stub, v)
 		time.Sleep(2 * time.Second)
+		voter, err = get_voter(stub, vid)
 		fmt.Println("after- tR: " + voter.TokensRemaining)
 		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
