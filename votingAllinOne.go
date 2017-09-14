@@ -393,6 +393,7 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 // "o9999999999999", "united_mables"
 // ============================================================================================================================
 func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var voter Voter
 	var err error
 	fmt.Println("starting disable_voter")
 
@@ -409,8 +410,10 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	var vid = args[0]
 
 	// get the marble owner data
-	voter, err := get_voter(stub, vid)
+	voter, err = get_voter(stub, vid)
 	// this if might duplicating if in the get_voter func
+	fmt.Println("\nafter get_voter")
+	fmt.Println(voter)
 	if err != nil {
 		fmt.Println("This voter does not exist - " + vid)
 		return shim.Error("This voter does not exist - " + vid)
@@ -423,6 +426,12 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
 		fmt.Println(voter)	
+		voterAsBytes, _ := json.Marshal(voter)
+		err = stub.PutState(voter.VID, voterAsBytes)
+		if err != nil{
+			fmt.Println("Could not store voter")
+			return shim.Error(err.Error())
+		}
 		fmt.Println("- end disable_voter")
 		return shim.Success(nil)
 	}
@@ -504,13 +513,14 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
         fmt.Println("The candidate has recieved in total '" + candidate.VotesReceived + "' tokens.")
         //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
-		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
+		//gia kapoio logo to fmt den tupwnetai..
+		fmt.Println("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 		return shim.Error("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 	}
 
 	if (tR <= 0) {
 		var v = []string {vid}
-		fmt.Printf("The voter with vid " + vid + " is gonna be disabled")
+		fmt.Println("The voter with vid " + vid + " is gonna be disabled")
 		voter.TokensRemaining = strconv.Itoa(tR)
 		fmt.Println("transfer_ ,tr<=0 ")
 		fmt.Println(voter)
