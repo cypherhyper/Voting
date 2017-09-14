@@ -427,7 +427,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-
+		fmt.Println(voter)	
 		fmt.Println("- end disable_voter")
 		return shim.Success(nil)
 	}
@@ -450,6 +450,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var voter Voter
 	var candidate Candidate
+	fmt.Println("begining: ")
+	fmt.Println(voter)
 	var err error
 	fmt.Println("starting transfer_vote")
 
@@ -480,7 +482,10 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	//check if user already exists
 	voter, err = get_voter(stub, vid)//change to vid
+	fmt.Println("get_ v")
+	fmt.Println(voter)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
+	//fainetai na mhn leitourgei to if auto
 	if err != nil || voter.Enabled == false {
 		return shim.Error("This voter does not exist or is disabled- " + voter.VID)//change to vid
 	}
@@ -501,7 +506,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		voter.TokensRemaining = strconv.Itoa(tR)
 		fmt.Println("The voter's remaining tokens are " + voter.TokensRemaining)
         candidate.VotesReceived = strconv.Itoa(vR)
-        fmt.Println("The candidate has recieved in total " + candidate.VotesReceived + "tokens.")
+        fmt.Println("The candidate has recieved in total '" + candidate.VotesReceived + "' tokens.")
         //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
 		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
@@ -510,7 +515,12 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if (tR <= 0) {
 		var v = []string {vid}
 		fmt.Printf("The voter with vid " + vid + " is gonna be disabled")
+		voter.TokensRemaining = strconv.Itoa(tR)
+		fmt.Println("transfer_ ,tr<=0 ")
+		fmt.Println(voter)
 		_ = disable_voter(stub, v)
+		fmt.Println("after: " + voter.TokensRemaining)
+		fmt.Println("- end call of disable_voter")
 	}
 
 	//store user
@@ -565,18 +575,18 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	vid := args[0]
-	voterAsbytes, err := stub.GetState(vid)           //get the var from ledger
+	voterAsBytes, err := stub.GetState(vid)           //get the var from ledger
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + vid + "\"}"
 		return shim.Error(jsonResp)
 	}
 
 	var voter Voter
-	json.Unmarshal(voterAsbytes, &voter)
+	json.Unmarshal(voterAsBytes, &voter)
 	fmt.Println(voter)
 	fmt.Println("- end read")
 
-	return shim.Success(voterAsbytes)                  //send it onward
+	return shim.Success(voterAsBytes)                  //send it onward
 }
 
 
