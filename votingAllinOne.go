@@ -409,8 +409,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	var vid = args[0]
 
-	// get the marble owner data
-	voter, err = get_voter(stub, vid)
+/*	// get the marble owner data
+	voter, err := get_voter(stub, vid)
 	if err != nil{
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
 		return shim.Error(err.Error())
@@ -422,7 +422,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println("This voter does not exist - " + vid)
 		return shim.Error("This voter does not exist - " + vid)
 	}
-
+*/
 	// disable the owner
 	//duplicate if in transfer_vote
 	tR, err := strconv.Atoi(voter.TokensRemaining)
@@ -430,8 +430,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
 		fmt.Println(voter)
-		voter, err = get_voter(stub, vid)
-		fmt.Println(voter)	
+		//voter, err = get_voter(stub, vid)
+		//fmt.Println(voter)	
 		voterAsBytes, _ := json.Marshal(voter)
 		err = stub.PutState(voter.VID, voterAsBytes)
 		if err != nil{
@@ -542,12 +542,12 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			return shim.Error(err.Error())
 		}
 		_ = disable_voter(stub, v)
-		voter, err = get_voter(stub, vid)
+/*		voter, err = get_voter(stub, vid)
 		if err != nil{
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
 		return shim.Error(err.Error())
 	}
-		fmt.Println("after- tR: " + voter.TokensRemaining)
+*/		fmt.Println("after- tR: " + voter.TokensRemaining)
 		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
 	}
