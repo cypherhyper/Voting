@@ -422,11 +422,6 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
-		jsonAsBytes, _ := json.Marshal(voter)         //convert to array of bytes
-		err = stub.PutState(args[0], jsonAsBytes)     //rewrite the owner
-		if err != nil {
-			return shim.Error(err.Error())
-		}
 		fmt.Println(voter)	
 		fmt.Println("- end disable_voter")
 		return shim.Success(nil)
@@ -510,6 +505,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
         //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
 		fmt.Printf("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
+		return shim.Error("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 	}
 
 	if (tR <= 0) {
@@ -518,8 +514,15 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		voter.TokensRemaining = strconv.Itoa(tR)
 		fmt.Println("transfer_ ,tr<=0 ")
 		fmt.Println(voter)
+		voterAsBytes, _ := json.Marshal(voter)
+		err = stub.PutState(voter.VID, voterAsBytes)
+		if err != nil{
+			fmt.Println("Could not store voter")
+			return shim.Error(err.Error())
+		}
 		_ = disable_voter(stub, v)
-		fmt.Println("after: " + voter.TokensRemaining)
+		fmt.Println("after- tR: " + voter.TokensRemaining)
+		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
 	}
 
