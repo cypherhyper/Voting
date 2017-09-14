@@ -22,6 +22,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 	//"bytes"
 	"strconv"
 	//"strings"
@@ -513,7 +514,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
         fmt.Println("The candidate has recieved in total '" + candidate.VotesReceived + "' tokens.")
         //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
-		//gia kapoio logo to fmt den tupwnetai..
 		fmt.Println("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 		return shim.Error("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 	}
@@ -531,6 +531,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			return shim.Error(err.Error())
 		}
 		_ = disable_voter(stub, v)
+		time.Sleep(2 * time.Second)
 		fmt.Println("after- tR: " + voter.TokensRemaining)
 		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
