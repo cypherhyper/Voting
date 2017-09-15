@@ -557,6 +557,8 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	}
 
 	//store user
+	fmt.Println("before PutState")
+	fmt.Println(voter)
 	voterAsBytes, _ := json.Marshal(voter)
 	err = stub.PutState(voter.VID, voterAsBytes)
 	if err != nil{
