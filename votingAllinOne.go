@@ -398,7 +398,9 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	}
 
 	if err != nil || voter.Enabled == false {
-		return shim.Error("This voter does not exist or is disabled- " + voter.VID)//change to vid
+		fmt.Println("This voter does not exist or is disabled- " + voter.VID)
+		fmt.Println(voter)
+		return shim.Error("This voter does not exist or is disabled- " + voter.VID)
 	}
 
 	//check if user already exists
@@ -428,12 +430,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		var v = []string {vid}
 		fmt.Println("The voter with vid " + vid + " is gonna be disabled")
 		voter.TokensRemaining = strconv.Itoa(tR)
-		voterAsBytes, _ := json.Marshal(voter)
-		err = stub.PutState(voter.VID, voterAsBytes)
-		if err != nil{
-			fmt.Println("Could not store voter")
-			return shim.Error(err.Error())
-		}
 		voter,_ = disable_voter(stub, v)
 		voter.VID = vid
 		voter.TokensBought = tB
