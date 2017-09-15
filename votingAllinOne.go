@@ -426,7 +426,7 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, erro
 	if tR <= 0 {
 		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
 		voter.Enabled = false
-		voter.TokensRemaining = "0"
+		voter.TokensRemaining = strconv.Itoa(tR)
 		fmt.Println(voter)
 /*		voter, err := get_voter(stub, vid)
 	if err != nil{
@@ -442,7 +442,8 @@ func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, erro
 			fmt.Println("Could not store voter")
 			return shim.Error(err.Error())
 		}
-*/		fmt.Println("- end disable_voter")
+*/		
+		fmt.Println("- end disable_voter")
 		return voter, nil
 	}
 
@@ -502,6 +503,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
 		return shim.Error(err.Error())
 	}
+	tB := voter.TokensBought
 	fmt.Println("get_ v")
 	fmt.Println(voter)
 	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
@@ -551,7 +553,9 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
 		return shim.Error(err.Error())
 	}
-*/		fmt.Println("after- tR: " + voter.TokensRemaining)
+*/		voter.VID = vid
+		voter.TokensBought = tB
+		fmt.Println("after- tR: " + voter.TokensRemaining)
 		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
 		fmt.Println("- end call of disable_voter")
 	}
