@@ -22,13 +22,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	//"bytes"
 	"strconv"
-	//"strings"
 	"encoding/json"
-	//"regexp"
-	//"bytes"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
@@ -45,30 +40,21 @@ var logger = shim.NewLogger("GiouChaincode")
 type  SimpleChaincode struct {
 }
 
-
 // ============================================================================================================================
 // Asset Definitions - The ledger will store voters and candidates
 // ============================================================================================================================
-
 //==============================================================================================================================
 //	Voter - Defines the structure for a voter object. JSON on right tells it what JSON fields to map to
 //			  that element when reading a JSON object into the struct e.g. JSON make -> Struct Make.
 //==============================================================================================================================
 type Voter struct {
-	//identity
-	//ecert
 	VID 						string `json:"VID"`
 	TokensBought    			string `json:"TokensBought"`
-	//TokensUsedPerCandidate    string `json:"TokensUsedPerCandidate"` //Map oxi Slice!
-	//TokensUsedPerCandidate 		make(map[string]string) `json:"TokensUsedPerCandidate"`
-	//TokensUsedPerCandidate 		map[string]string `json:"TokensUsedPerCandidate"`
 	TokensRemaining				string `json:"TokensRemaining"`
 	Enabled						bool `json:"Enabled"`
 }
 
 type Candidate struct {
-	//identity
-	//ecert
 	CID 				string `json:"CID"`
 	CandidateName    string `json:"CandidateName"`
 	VotesReceived    string `json:"VotesReceived"`
@@ -89,9 +75,7 @@ func main() {
 // ============================================================================================================================
 // Init - initialize the chaincode 
 //
-// Marbles does not require initialization, so let's run a simple test instead.
-//
-// Shows off PutState() and how to pass an input argument to chaincode.
+// VotingApp does not require initialization, so let's run a simple test instead.
 //
 // Inputs - Array of strings
 //  ["314"]
@@ -100,7 +84,6 @@ func main() {
 // ============================================================================================================================
 // Init initializes chaincode
 // ===========================
-
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("\nVotingApp Is Starting Up\n")
 	_, args := stub.GetFunctionAndParameters()
@@ -160,19 +143,19 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	// Handle different functions
 	if function == "init" {                    //initialize the chaincode state, used as reset
 		return t.Init(stub)
-	} else if function == "read_voter" {             //generic read ledger -> psiloaxrhsth
+	} else if function == "read_voter" {             
 		return read_voter(stub, args)
-	} else if function == "delete_voter" {    //deletes a marble from state
+	} else if function == "delete_voter" {    
 		return delete_voter(stub, args)
-	} else if function == "init_voter" {      //create a new marble
+	} else if function == "init_voter" {      
 		return init_voter(stub, args)
-	}else if function == "init_candidate" {      //create a new marble
+	}else if function == "init_candidate" {      
 		return init_candidate(stub, args)
-	}else if function == "read_candidate" {      //create a new marble
+	}else if function == "read_candidate" {      
 		return read_candidate(stub, args)
-	}else if function == "delete_candidate" {      //create a new marble
+	}else if function == "delete_candidate" {      
 		return delete_candidate(stub, args)
-	}else if function == "transfer_vote" {      //create a new marble
+	}else if function == "transfer_vote" {      
 		return transfer_vote(stub, args)
 	}
 
@@ -181,23 +164,17 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Error("Received unknown invoke function name - '" + function + "'")
 }
 
+
 //*********************************************************************************
 //********************************** WRITE LEDGER *********************************
 //*********************************************************************************
 // ============================================================================================================================
-// Init Owner - create a new owner aka end user, store into chaincode state
-//
-// Shows off building key's value from GoLang Structure
+// Init Voter - create a new voter, store into chaincode state
 //
 // Inputs - Array of Strings
-//           0     ,     1   ,   2
-//      owner id   , username, company
-// "o9999999999999",     bob", "united marbles"
-//
-// Inputs - Array of Strings
-//           0     ,         1   ,   2
-//      voter id   , TokensBought, company
-//           "v001",       "100" , "united marbles"
+//           0     ,         1   	.
+//      voter id   , TokensBought	.
+//           "v001",       "100" 	.
 // ============================================================================================================================
 func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
@@ -214,10 +191,8 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	var voter Voter
-	//voter.ObjectType = "marble_owner"
 	voter.VID = args[0]
 	voter.TokensBought = args[1]
-	//voter.TokensUsedPerCandidate = args[2]
 	voter.TokensRemaining = args[1]
 	voter.Enabled = true
 	fmt.Println("ID: " + voter.VID + ", TokensBought: " + voter.TokensBought + ", TokensRemaining: " + voter.TokensRemaining + ", Active: " + strconv.FormatBool(voter.Enabled))
@@ -232,7 +207,7 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//store user
 	voterAsBytes, _ := json.Marshal(voter)                         //convert to array of bytes
 	fmt.Println(" putting state in block")
-	err = stub.PutState(voter.VID, voterAsBytes)                    //store owner by its Id
+	err = stub.PutState(voter.VID, voterAsBytes)                    //store voter by its Id
 	if err != nil {
 		fmt.Println("Could not store voter")
 		return shim.Error(err.Error())
@@ -244,6 +219,14 @@ func init_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 }
 
 
+// ============================================================================================================================
+// Init Candidate - create a new candidate, store into chaincode state
+//
+// Inputs - Array of Strings
+//           	0	    ,	         1   			.
+//      candidate id   	, 	candidate's name		.
+//           "c001"		,   "christopher wallace"	.
+// ============================================================================================================================
 func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
 	fmt.Println("starting init_candidate")
@@ -259,7 +242,6 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	var candidate Candidate
-	//voter.ObjectType = "marble_owner"
 	candidate.CID =  args[0]
 	candidate.CandidateName = args[1]
 	candidate.VotesReceived = "0"
@@ -275,7 +257,7 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	//store user
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
 	fmt.Println(" putting state in block")
-	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store owner by its Id
+	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store candidate by its Id
 	if err != nil {
 		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
@@ -287,20 +269,15 @@ func init_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 }
 
 
-
-
 // ============================================================================================================================
-// delete_marble() - remove a marble from state and from marble index
-// 
-// Shows Off DelState() - "removing"" a key/value from the ledger
+// delete_voter() - remove a voter from state and from voter index
 //
 // Inputs - Array of strings
-//      0      ,         1
-//     id      ,  authed_by_company
-// "m999999999", "united marbles"
+//      0      	.
+//     id 		.
+//	"v001"		.
 // ============================================================================================================================
 func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response) {
-	//might be need to provide the var voter Voter 
 	fmt.Println("starting delete_voter")
 
 	if len(args) != 1 {
@@ -314,22 +291,16 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 	}
 
 	vid := args[0]
-	//authed_by_company := args[1]
 
-	// get the marble
+	// get the voter
 	voter, err := get_voter(stub, vid)
 	if err != nil{
-		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
+		fmt.Println("Failed to find voter by vid " + vid)
 		return shim.Error(err.Error())
 	}
 
-	//nmzw einai axrhsto gt ama dn uparxei to ID xtypaei to apo panw error.
-	if voter.VID != vid {          							//test if marble is actually here or just nil
-		return shim.Error("Not the same voter ID provided")	//the existance of the voter is checked in the get_voter func
-	}
-
-	// remove the marble
-	err = stub.DelState(vid)                                                 //remove the key from chaincode state
+	// remove the voter
+	err = stub.DelState(vid) //remove the key from chaincode state
 	if err != nil {
 		return shim.Error("Failed to delete state")
 	}
@@ -340,8 +311,15 @@ func delete_voter(stub shim.ChaincodeStubInterface, args []string) (pb.Response)
 }
 
 
+// ============================================================================================================================
+// delete_candidate() - remove a candidate from state and from candidate index
+//
+// Inputs - Array of strings
+//      0      	.
+//     id 		.
+//	"c001"		.
+// ============================================================================================================================
 func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Response) {
-	//might be need to provide the var voter Voter  -> NOT
 	fmt.Println("starting delete_candidate")
 
 	if len(args) != 1 {
@@ -356,20 +334,15 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 
 	cid := args[0]
 
-	// get the marble
+	// get the candidate
 	candidate, err := get_candidate(stub, cid)
 	if err != nil{
 		fmt.Println("Failed to find candidate by cid " + cid)
 		return shim.Error(err.Error())
 	}
 
-	//nmzw einai axrhsto gt ama dn uparxei to ID xtypaei to apo panw error.
-	if candidate.CID != cid {                                     //test if marble is actually here or just nil
-		return shim.Error("Not the same candidate ID provided")	//the existance of the voter is checked in the get_voter func
-	}
-
-	// remove the marble
-	err = stub.DelState(cid)                                                 //remove the key from chaincode state
+	// remove the candidate
+	err = stub.DelState(cid) //remove the key from chaincode state
 	if err != nil {
 		return shim.Error("Failed to delete state")
 	}
@@ -381,99 +354,18 @@ func delete_candidate(stub shim.ChaincodeStubInterface, args []string) (pb.Respo
 
 
 // ============================================================================================================================
-// Disable Marble Owner
-//
-// Shows off PutState()
+// Transfer Vote
 //
 // Inputs - Array of Strings
-//       0     ,        1      
-//  owner id       , company that auth the transfer
-// "o9999999999999", "united_mables"
-// ============================================================================================================================
-func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, error){
-	var voter Voter
-	fmt.Println("starting disable_voter")
-
-	/*if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	// input sanitation
-	err = sanitize_arguments(args)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-*/
-	var vid = args[0]
-
-/*	// get the marble owner data
-	voter, err := get_voter(stub, vid)
-	if err != nil{
-		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
-		return shim.Error(err.Error())
-	}
-	// this if might duplicating if in the get_voter func
-	fmt.Println("\nafter get_voter")
-	fmt.Println(voter)
-	if err != nil {
-		fmt.Println("This voter does not exist - " + vid)
-		return shim.Error("This voter does not exist - " + vid)
-	}
-*/
-	// disable the owner
-	//duplicate if in transfer_vote
-	tR,_ := strconv.Atoi(voter.TokensRemaining)
-	if tR <= 0 {
-		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
-		voter.Enabled = false
-		voter.TokensRemaining = strconv.Itoa(tR)
-		fmt.Println(voter)
-/*		voter, err := get_voter(stub, vid)
-	if err != nil{
-		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
-		return shim.Error(err.Error())
-	}
-		fmt.Println(voter)
-		//voter, err = get_voter(stub, vid)
-		//fmt.Println(voter)	
-		voterAsBytes, _ := json.Marshal(voter)
-		err = stub.PutState(voter.VID, voterAsBytes)
-		if err != nil{
-			fmt.Println("Could not store voter")
-			return shim.Error(err.Error())
-		}
-*/		
-		fmt.Println("- end disable_voter")
-		return voter, nil
-	}
-
-	fmt.Println("The voter '" + vid + "' has '" + voter.TokensRemaining + "' remaining tokens")
-	return voter,errors.New("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
-}
-
-
-// ============================================================================================================================
-// Set Owner on Marble
-//
-// Shows off GetState() and PutState()
-//
-// Inputs - Array of Strings
-//       0     ,        1      ,        2
-//  marble id  ,  to owner id  , company that auth the transfer
-// "m999999999", "o99999999999", united_mables" 
+//       0     	,        1      	,        		2 			.
+//  voter id  	,   candidate id  	, 	tokens to use for vote	.
+// 	"v001"		, 	"c001"			, 				"20"		. 
 // ============================================================================================================================
 func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var voter Voter
 	var candidate Candidate
-	fmt.Println("begining: ")
-	fmt.Println(voter)
 	var err error
 	fmt.Println("starting transfer_vote")
-
-	// this is quirky
-	// todo - get the "company that authed the transfer" from the certificate instead of an argument
-	// should be possible since we can now add attributes to the enrollment cert
-	// as is.. this is a bit broken (security wise), but it's much much easier to demo! holding off for demos sake
 
 	if len(args) != 3 {
 		fmt.Println("Incorrect number of arguments. Expecting 3")
@@ -495,19 +387,16 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println("This voter didn't insert enough tokens to use- " + tokensToUse)
 		return shim.Error("This voter didn't insert enough tokens to use- " + tokensToUse)
 	}
+
 	fmt.Println("The voter '" + vid + "' votes for the candidate '" + cid + "' with the amount of- |" + tokensToUse + "| -tokens.")
 
-	//check if user already exists
-	voter, err = get_voter(stub, vid)//change to vid
+	//check if voter already exists
+	voter, err = get_voter(stub, vid)
 	if err != nil{
-		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
+		fmt.Println("Failed to find voter by vid " + vid)
 		return shim.Error(err.Error())
 	}
-	tB := voter.TokensBought
-	fmt.Println("get_ v")
-	fmt.Println(voter)
-	//h get_voter an uparxei hdh o voter epistrefei nill, dld uparxei error
-	//fainetai na mhn leitourgei to if auto
+
 	if err != nil || voter.Enabled == false {
 		return shim.Error("This voter does not exist or is disabled- " + voter.VID)//change to vid
 	}
@@ -518,7 +407,8 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Error("This candidate does not exist - " + cid)//cid
 	}
 
-	//var tR *int
+	
+	tB := voter.TokensBought
 	tR, err := strconv.Atoi(voter.TokensRemaining)
 	vR, err := strconv.Atoi(candidate.VotesReceived)
 
@@ -529,7 +419,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		fmt.Println("The voter's remaining tokens are " + voter.TokensRemaining)
         candidate.VotesReceived = strconv.Itoa(vR)
         fmt.Println("The candidate has recieved in total '" + candidate.VotesReceived + "' tokens.")
-        //voter.TokensUsedPerCandidate[cid] = tokensToUse
 	}else if (tR > 0 && tTU >tR) {
 		fmt.Println("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
 		return shim.Error("Not enough tokens. Your maximum amount of tokens is: - |" + voter.TokensRemaining + "| -")
@@ -539,8 +428,6 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		var v = []string {vid}
 		fmt.Println("The voter with vid " + vid + " is gonna be disabled")
 		voter.TokensRemaining = strconv.Itoa(tR)
-		fmt.Println("transfer_ ,tr<=0 ")
-		fmt.Println(voter)
 		voterAsBytes, _ := json.Marshal(voter)
 		err = stub.PutState(voter.VID, voterAsBytes)
 		if err != nil{
@@ -548,20 +435,11 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			return shim.Error(err.Error())
 		}
 		voter,_ = disable_voter(stub, v)
-/*		voter, err = get_voter(stub, vid)
-		if err != nil{
-		fmt.Println("Failed to find voter by vid " + vid)//leitourgei, alla to evgale kai gia voter pou uphrxe.
-		return shim.Error(err.Error())
-	}
-*/		voter.VID = vid
+		voter.VID = vid
 		voter.TokensBought = tB
-		fmt.Println("after- tR: " + voter.TokensRemaining)
-		fmt.Println("after- Enabled: " + strconv.FormatBool(voter.Enabled))
-		fmt.Println("- end call of disable_voter")
 	}
 
-	//store user
-	fmt.Println("before PutState")
+	//store voter
 	fmt.Println(voter)
 	voterAsBytes, _ := json.Marshal(voter)
 	err = stub.PutState(voter.VID, voterAsBytes)
@@ -572,7 +450,7 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 	//store user
 	candidateAsBytes, _ := json.Marshal(candidate)                         //convert to array of bytes
-	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store owner by its Id
+	err = stub.PutState(candidate.CID, candidateAsBytes)                    //store candidate by its Id
 	if err != nil {
 		fmt.Println("Could not store candidate")
 		return shim.Error(err.Error())
@@ -587,15 +465,13 @@ func transfer_vote(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 //********************************** READ LEDGER **********************************
 //*********************************************************************************
 // ============================================================================================================================
-// Read - read a generic variable from ledger
-//
-// Shows Off GetState() - reading a key/value from the ledger
+// Read Voter- read a voter from ledger
 //
 // Inputs - Array of strings
-//  0
-//  key
-//  "abc"
-// 
+//      0      	.
+//     id 		.
+//	"v001"		.
+//
 // Returns - string
 // ============================================================================================================================
 func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -614,7 +490,7 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	vid := args[0]
-	voterAsBytes, err := stub.GetState(vid)           //get the var from ledger
+	voterAsBytes, err := stub.GetState(vid)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + vid + "\"}"
 		return shim.Error(jsonResp)
@@ -629,6 +505,16 @@ func read_voter(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 }
 
 
+// ============================================================================================================================
+// Read Candidate- read a candidate from ledger
+//
+// Inputs - Array of strings
+//      0      	.
+//     id 		.
+//	"c001"		.
+//
+// Returns - string
+// ============================================================================================================================
 func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var jsonResp string
 	var err error
@@ -645,7 +531,7 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	cid := args[0]
-	candidateAsbytes, err := stub.GetState(cid)           //get the var from ledger
+	candidateAsbytes, err := stub.GetState(cid)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + cid + "\"}"
 		return shim.Error(jsonResp)
@@ -659,44 +545,42 @@ func read_candidate(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	return shim.Success(candidateAsbytes)                  //send it onward
 }
 
+
 //*********************************************************************************
 //********************************** LIB ******************************************
 //*********************************************************************************
 // ============================================================================================================================
-// Get Marble - get a marble asset from ledger
-//vid is the input
-//VID is from struct Voter
-//estw v001=voter.VID->init vid=v001->GetState(001)->unmarshal(001) &voter(001)->001!=001 ?
-//voter.VID != vid -> Dld elegxei an h domh me 001 einai diaforetikh me 001??auto den einai anousio?
+// Get Voter - get a voter asset from ledger
+//
 // ============================================================================================================================
 func get_voter(stub shim.ChaincodeStubInterface, vid string) (Voter, error) {
 	var voter Voter
-	voterAsBytes, err := stub.GetState(vid)                  //getState retreives a key/value from the ledger
-	// If the key does not exist in the state database, (nil, nil) is returned.
-    //GetState(key string) ([]byte, error)
+	voterAsBytes, err := stub.GetState(vid) //getState retreives a key/value from the ledger. If the key does not exist in the state database, (nil, nil) is returned.
 
-	//den ektupwnetai pote
-	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+	if err != nil {                                          
 		return voter, errors.New("Failed to find voter - " + vid)
 	}
-	json.Unmarshal(voterAsBytes, &voter)                   //un stringify it aka JSON.parse()
+	json.Unmarshal(voterAsBytes, &voter) //un stringify it aka JSON.parse()
 
-	//ektupwthike kata to delete_marble
 	if voter.VID != vid {  
-		return voter, errors.New("Voter does not exist - " + vid)  //test if marble is actually here or just nil
+		return voter, errors.New("Voter does not exist - " + vid)
 	}
 
 	return voter, nil
 }
 
+
+// ============================================================================================================================
+// Get Canddidate - get a candidate asset from ledger
+// ============================================================================================================================
 func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, error) {
 	var candidate Candidate
-	candidateAsBytes, err := stub.GetState(cid)                  //getState retreives a key/value from the ledger
+	candidateAsBytes, err := stub.GetState(cid) //getState retreives a key/value from the ledger. If the key does not exist in the state database, (nil, nil) is returned.
 
-	if err != nil {                                          //this seems to always succeed, even if key didn't exist <<<<----------------------------------------------------------------------
+	if err != nil {             
 		return candidate, errors.New("Failed to find candidate - " + cid)
 	}
-	json.Unmarshal(candidateAsBytes, &candidate)                   //un stringify it aka JSON.parse()
+	json.Unmarshal(candidateAsBytes, &candidate) //un stringify it aka JSON.parse()
 
 	if candidate.CID != cid {
 		return candidate, errors.New("Candidate does not exist - " + cid) 
@@ -706,9 +590,33 @@ func get_candidate(stub shim.ChaincodeStubInterface, cid string) (Candidate, err
 }
 
 
-// ========================================================
+// ============================================================================================================================
+// Disable Voter
+// ============================================================================================================================
+func disable_voter(stub shim.ChaincodeStubInterface, args []string) (Voter, error){
+	var voter Voter
+	fmt.Println("starting disable_voter")
+
+	var vid = args[0]
+	
+	//if the voter doesn't have tokens, he must be disabled
+	tR,_ := strconv.Atoi(voter.TokensRemaining)
+	if tR <= 0 {
+		fmt.Println(" Voter - " + vid + " - is gonna be disabled because of not remaining tokens")
+		voter.Enabled = false
+		voter.TokensRemaining = strconv.Itoa(tR)
+		fmt.Println("- end disable_voter")
+		return voter, nil
+	}
+
+	fmt.Println("The voter '" + vid + "' has '" + voter.TokensRemaining + "' remaining tokens")
+	return voter,errors.New("The voter '" + vid + "' has " + voter.TokensRemaining + " remaining tokens")
+}
+
+
+// ============================================================================================================================
 // Input Sanitation - dumb input checking, look for empty strings
-// ========================================================
+// ============================================================================================================================
 func sanitize_arguments(strs []string) error{
 	for i, val := range strs {
 		if len(val) <= 0 {
